@@ -21,6 +21,7 @@ do
 		echo "list: List the files in the queue, with entry numbers."
 		echo "add: Add to the queue."
 		echo "remove: Remove from the queue."
+		echo "quit: Quit the program and delete the queue file."
 	fi
 	if [[ $command == "list" ]]
 	then
@@ -60,5 +61,11 @@ do
 		head -n $(( $location - 1 )) $queue > ${queue}.tmp
 		tail -n +$(( $location + 1 )) $queue >> ${queue}.tmp
 		mv ${queue}.tmp $queue
+	fi
+	if [[ $command == "quit" ]]
+	then
+		rm $queue
+		rm ${queue}.tmp &> /dev/null
+		exit 0
 	fi
 done
