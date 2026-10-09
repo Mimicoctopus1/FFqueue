@@ -1,0 +1,64 @@
+#!/bin/bash
+queue="$(pwd)/.queue"
+if [[ -n $1 ]]
+then
+	queue=$1
+fi
+
+if [[ ! -f $queue ]]
+then
+	touch $queue
+fi
+
+echo "Writing queue to \"${queue}\"."
+
+while true
+do
+	echo -n "> "
+	read command
+	if [[ $command == "help" ]] # Forgive my wasteful "if" structures. /(^-^')7
+	then
+		echo "list: List the files in the queue, with entry numbers."
+		echo "add: Add to the queue."
+		echo "remove: Remove from the queue."
+	fi
+	if [[ $command == "list" ]]
+	then
+		nl --body-numbering="a" $queue
+	fi
+	if [[ $command == "add" ]]
+	then
+		file=$(fzf --border="rounded" --border-label="Choose a file to add." --border-label-pos=3:bottom)
+		default_location=$(wc -l $queue | sed -e "s/ .*//")
+		echo -n "Add after [${default_location}]: " 
+		read location
+		if [[ -z $location ]]
+		then
+			location=$default_location
+		fi
+
+		echo "Add \"${file}\" after number ${location}."
+
+		head -n $location $queue > ${queue}.tmp
+		echo $file >> ${queue}.tmp
+		tail -n +$(( $location + 1 )) $queue >> ${queue}.tmp
+		mv ${queue}.tmp $queue
+	fi
+	if [[ $command == "remove" ]]
+	then
+		default_location=$(wc -l $queue | sed -e "s/ .*//")
+		echo -n "Remove [${default_location}]: " 
+		read location
+		if [[ -z $location ]]
+		then
+			location=$default_location
+		fi
+		file=$(head -n $location $queue | tail -n 1)
+
+		echo "Remove \"${file}\" at number ${location}."
+
+		head -n $(( $location - 1 )) $queue > ${queue}.tmp
+		tail -n +$(( $location + 1 )) $queue > ${queue}.tmp
+		mv ${queue}.tmp $queue
+	fi
+done
