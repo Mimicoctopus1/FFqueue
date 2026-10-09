@@ -1,0 +1,29 @@
+#!/bin/bash
+queue="$(pwd)/.queue"
+
+if [[ -n $1 ]]
+then
+	queue=$1
+fi
+
+if [[ ! -f $queue ]]
+then
+	touch $queue
+fi
+
+echo "Reading queue from \"${queue}\"."
+
+while true
+do
+	if [[ -n $(cat $queue | head -n 1) ]]
+	then
+		file=$(cat $queue | head -n 1)
+		echo "Playing ${file}..."
+		cat $queue | tail -n +2 > ${queue}.tmp # Writing directly to $queue will clear it before evaluating the expression, which then reads from an empty file.
+		mv ${queue}.tmp $queue
+		ffplay "${file}" &> /dev/null
+	else
+		echo "Empty queue..."
+		sleep 5
+	fi
+done
