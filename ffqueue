@@ -29,19 +29,24 @@ do
 	then
 		file=$(fzf --border="rounded" --border-label="Choose a file to add." --border-label-pos=3:bottom)
 		default_location=$(wc -l $queue | sed -e "s/ .*//")
-		echo -n "Add after [${default_location}]: " 
-		read location
-		if [[ -z $location ]]
+		if [[ -n $file ]]
 		then
-			location=$default_location
+			echo -n "Add after [${default_location}]: " 
+			read location
+			if [[ -z $location ]]
+			then
+				location=$default_location
+			fi
+
+			echo "Add \"${file}\" after number ${location}."
+
+			head -n $location $queue > ${queue}.tmp
+			echo $file >> ${queue}.tmp
+			tail -n +$(( $location + 1 )) $queue >> ${queue}.tmp
+			mv ${queue}.tmp $queue
+		else
+			echo "No file was specified for adding." > /dev/stderr
 		fi
-
-		echo "Add \"${file}\" after number ${location}."
-
-		head -n $location $queue > ${queue}.tmp
-		echo $file >> ${queue}.tmp
-		tail -n +$(( $location + 1 )) $queue >> ${queue}.tmp
-		mv ${queue}.tmp $queue
 	fi
 	if [[ $command == "remove" ]]
 	then
