@@ -15,7 +15,9 @@ echo "Writing queue to \"${queue}\"."
 while true
 do
 	echo -n "> "
-	read command
+	read input
+	command=$(echo $input | sed -e "s/^\s*\(\S*\).*$/\1/")
+	parameters=$(echo $input | sed -e "s/^\s*\S*\s*\(.*\)$/\1/")
 	if [[ $command == "help" ]] # Forgive my wasteful "if" structures. /(^-^')7
 	then
 		echo "list: List the files in the queue, with entry numbers."
@@ -29,7 +31,12 @@ do
 	fi
 	if [[ $command == "add" ]]
 	then
-		file=$(fzf --border="rounded" --border-label="Choose a file to add." --border-label-pos=3:bottom)
+		if [[ -z $(echo $parameters | sed -e "s/\s//g") ]]
+		then
+			file=$(fzf --border="rounded" --border-label="Choose a file to add." --border-label-pos=3:bottom)
+		else
+			file=$(echo $parameters | sed -e "s/\s\+/ /g")
+		fi
 		default_location=$(wc -l $queue | sed -e "s/ .*//")
 		if [[ -n $file ]]
 		then
@@ -69,8 +76,23 @@ do
 	fi
 	if [[ $command == "quit" ]]
 	then
-		rm $queue
-		rm ${queue}.tmp &> /dev/null
-		exit 0
+		exit_code=
+		if [[ -n $(echo $parameters | sed -e "s/\s//g") ]]
+		then
+			if [[ -z $(echo $parameters | sed -e "s/^[0-9]\+\s*$//g") ]]
+			then
+				exit_code=$(echo $parameters | sed -e "s/^\([0-9]+\)\s*$/\1/g")
+			else
+				echo "An exit code could not be extracted these parameters: ${parameters}"
+			fi
+		else
+			exit_code=0
+		fi
+		if [[ -n $exit_code ]]
+		then
+			rm $queue
+			rm ${queue}.tmp &> /dev/null
+			exit $exit_code
+		fi
 	fi
 done
