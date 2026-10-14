@@ -36,12 +36,12 @@ do
 	parameters=$(echo $input | sed -e "s/^\s*\S*\s*\(.*\)$/\1/")
 	if [[ $command == "help" ]] # Forgive my wasteful "if" structures. /(^-^')7
 	then
-		echo "list: List the files in the queue, with entry numbers."
-		echo "add: Add to the queue."
-		echo "remove: Remove from the queue."
-		echo "quit: Quit the program and delete the queue file."
+		echo "{list|ls}: List the files in the queue, with entry numbers."
+		echo "{add}: Add to the queue."
+		echo "{remove|rm}: Remove from the queue."
+		echo "{exit|quit}: Quit the program and delete the queue file."
 	fi
-	if [[ $command == "list" ]]
+	if [[ $command == "list" || $command == "ls" ]]
 	then
 		nl --body-numbering="a" $queue
 	fi
@@ -73,7 +73,7 @@ do
 			echo "No file was specified for adding." > /dev/stderr
 		fi
 	fi
-	if [[ $command == "remove" ]]
+	if [[ $command == "remove" || $command == "rm" ]]
 	then
 		default_location=$(wc -l $queue | sed -e "s/ .*//")
 		echo -n "Remove [${default_location}]: " 
@@ -90,7 +90,7 @@ do
 		tail -n +$(( $location + 1 )) $queue >> ${queue}.tmp
 		mv ${queue}.tmp $queue
 	fi
-	if [[ $command == "quit" ]]
+	if [[ $command == "quit" || $command == "exit" ]]
 	then
 		exit_code=
 		if [[ -n $(echo $parameters | sed -e "s/\s//g") ]]
