@@ -1,14 +1,29 @@
 #!/bin/bash
-queue="$(pwd)/.queue"
+argument_to_read=1 # Skip the first one, which is the command used to execute this script.
+function next_argument {
+	argument=${!argument_to_read}
+	argument_to_read=$(( argument_to_read + 1 ))
+}
 
-if [[ -n $1 ]]
+next_argument "$@" # The quotes ensure that multi-word arguments (e.g. "word1 word2") are kept together.
+while [[ -n $argument ]] 
+do
+	if [[ $argument == "--queue" ]]
+	then
+		next_argument "$@"
+		queue=$argument
+	fi
+	next_argument "$@"
+done
+
+if [[ -z $queue ]]
 then
-	queue=$1
+	queue="$(pwd)/.queue"
 fi
 
-if [[ ! -f $queue ]]
+if [[ ! -f "$queue" ]]
 then
-	touch $queue
+	touch "$queue"
 fi
 
 echo "Reading queue from \"${queue}\"."
