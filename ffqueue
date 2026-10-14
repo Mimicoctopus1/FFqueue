@@ -1,26 +1,44 @@
 #!/bin/bash
 function next_argument {
-	possible_arguments="$(echo "$1" | xargs -n1 2> /dev/null)" # The redirection is to stop `xargs` from complaining when `echo` is cut off by `head`.
-	if [[ $to_read -le $(echo "$possible_arguments" | wc -l) ]]
+	if [[ -n $parse_arguments ]]
 	then
-		argument="$(echo "$possible_arguments" | head -n $to_read | tail -n 1)"
+		possible_arguments="$(echo "$1" | xargs -n1 2> /dev/null)" # The redirection is to stop `xargs` from complaining when `echo` is cut off by `head`.
+		if [[ $to_read -le $(echo "$possible_arguments" | wc -l) ]]
+		then
+			argument="$(echo "$possible_arguments" | head -n $to_read | tail -n 1)"
+		else
+			argument=
+		fi
 	else
-		argument=
+		argument=${!to_read}
 	fi
 	to_read=$(( to_read + 1 ))
 }
 
-queue="$(pwd)/.queue"
-if [[ -n $1 ]]
+parse_arguments= # `$@` comes with escaped characters and such already evaluated.
+to_read=1 # The zero-th one will be the path to this script.
+next_argument "$@" # Note there is an exception for `$@` such that it is expanded into multiple arguments, even if surrounded by quotes.
+while [[ -n $argument ]] 
+do
+	if [[ $argument == "--queue" ]]
+	then
+		next_argument "$@"
+		queue=$argument
+	fi
+	next_argument "$@"
+done
+
+if [[ -z $queue ]]
 then
-	queue=$1
+	queue="$(pwd)/.queue"
 fi
 if [[ ! -f $queue ]]
 then
-	touch $queue
+	touch "$queue"
 fi
 echo "Writing queue to \"${queue}\"."
 
+parse_arguments=1 # `read` doesn't separate arguments, so we'll do it in `next_arguments` manually.
 while true
 do
 	echo -n "> "
