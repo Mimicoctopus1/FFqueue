@@ -5,10 +5,17 @@ function next_argument {
 	argument_to_read=$(( argument_to_read + 1 ))
 }
 
+default_ffplay_arguments="-autoexit"
+ffplay_arguments=
 next_argument "$@" # The quotes ensure that multi-word arguments (e.g. "word1 word2") are kept together.
 while [[ -n $argument ]] 
 do
-	if [[ $argument == "--queue" ]]
+	if [[ $argument == "--ffplay" ]]
+	then
+		next_argument "$@"
+		ffplay_arguments="$ffplay_arguments $argument"
+		default_ffplay_arguments=
+	elif [[ $argument == "--queue" ]]
 	then
 		next_argument "$@"
 		queue=$argument
@@ -36,7 +43,7 @@ do
 		echo "Playing ${file}..."
 		cat $queue | tail -n +2 > ${queue}.tmp # Writing directly to $queue will clear it before evaluating the expression, which then reads from an empty file.
 		mv ${queue}.tmp $queue
-		ffplay -autoexit "${file}" &> /dev/null
+		ffplay $default_ffplay_arguments $ffplay_arguments "${file}" &> /dev/null
 	else
 		echo "Empty queue..."
 		sleep 5
