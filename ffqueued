@@ -48,11 +48,11 @@ echo "Reading queue from \"${queue}\"."
 parse_arguments=1 # `read` doesn't separate arguments, so we'll do it in `next_arguments` manually.
 while true
 do
-	if [[ -n $(cat $queue | head -n 1) ]]
+	file=$(head -n 1 $queue)
+	if [[ -n $file ]]
 	then
-		file=$(cat $queue | head -n 1)
 		echo "Playing ${file}..."
-		cat $queue | tail -n +2 > ${queue}.tmp # Writing directly to $queue will clear it before evaluating the expression, which then reads from an empty file.
+		tail -n +2 $queue > ${queue}.tmp # Writing directly to $queue will clear it before evaluating the expression, which then reads from an empty file.
 		mv ${queue}.tmp $queue
 		ffplay $default_ffplay_arguments $ffplay_arguments "${file}" &> /dev/null
 	else
