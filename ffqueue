@@ -50,9 +50,13 @@ do
 	then
 		if [[ -z $(echo $parameters | sed -e "s/\s//g") ]]
 		then
-			file=$(fzf --border="rounded" --border-label="Choose a file to add." --border-label-pos=3:bottom)
+<<<<<<< HEAD
+			files=$(fzf --border="rounded" --border-label="Choose a file to add." --border-label-pos=3:bottom)
+=======
+			files=$(fzf --multi --border="rounded" --border-label="Choose a file to add (use <Tab> and <Shift+Tab> to select multiple)." --border-label-pos=3:bottom)
+>>>>>>> d2913ff (✨Added support for selecting multiple songs at once through "fzf --multi".)
 		else
-			file=$(echo $parameters | sed -e "s/\s\+/ /g")
+			files=$(echo $parameters | sed -e "s/\s\+/ /g")
 		fi
 		default_location=$(wc -l $queue | sed -e "s/ .*//")
 		if [[ -n $file ]]
@@ -64,10 +68,10 @@ do
 				location=$default_location
 			fi
 
-			echo "Add \"${file}\" after number ${location}."
+			echo "Add \"${files}\" after number ${location}."
 
 			head -n $location $queue > ${queue}.tmp
-			echo $file >> ${queue}.tmp
+			echo "$files" >> ${queue}.tmp # Quotes are necessary to retain newlines if multiple files are in $files.
 			tail -n +$(( $location + 1 )) $queue >> ${queue}.tmp
 			mv ${queue}.tmp $queue
 		else
