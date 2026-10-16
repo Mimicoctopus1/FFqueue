@@ -62,13 +62,13 @@ do
 		next_argument "$arguments"
 		if [[ -n $argument ]]
 		then
-			file="$argument"
+			files="$argument"
 		else
-			file=$(fzf --border="rounded" --border-label="Choose a file to add." --border-label-pos=3:bottom)
+			files=$(fzf --multi --border="rounded" --border-label="Choose a file to add (use <Tab> and <Shift+Tab> to select multiple)." --border-label-pos=3:bottom)
 			to_read=$(( $to_read - 1 ))
 		fi
 		default_location=$(wc -l $queue | sed -e "s/ .*//")
-		if [[ -n $file ]]
+		if [[ -n $files ]]
 		then
 			echo -n "Add after [${default_location}]: " 
 			read location
@@ -77,10 +77,10 @@ do
 				location=$default_location
 			fi
 
-			echo "Add \"${file}\" after number ${location}."
+			echo "Add \"${files}\" after number ${location}."
 
 			head -n $location $queue > ${queue}.tmp
-			echo $file >> ${queue}.tmp
+			echo "$files" >> ${queue}.tmp # Quotes are necessary to retain newlines if multiple files are in $files.
 			tail -n +$(( $location + 1 )) $queue >> ${queue}.tmp
 			mv ${queue}.tmp $queue
 		else
@@ -90,18 +90,27 @@ do
 	if [[ $command == "remove" || $command == "rm" ]]
 	then
 		default_location=$(wc -l $queue | sed -e "s/ .*//")
-		echo -n "Remove [${default_location}]: " 
+		echo -n "Start with [${default_location}]: " 
 		read location
 		if [[ -z $location ]]
 		then
 			location=$default_location
 		fi
-		file=$(head -n $location $queue | tail -n 1)
 
-		echo "Remove \"${file}\" at number ${location}."
+		default_amount=1
+		echo -n "Remove [${default_amount}]: " 
+		read amount
+		if [[ -z $amount ]]
+		then
+			amount=$default_amount
+		fi
 
-		head -n $(( $location - 1 )) $queue > ${queue}.tmp
-		tail -n +$(( $location + 1 )) $queue >> ${queue}.tmp
+		files=$(tail -n +$location $queue | head -n $amount)
+
+		echo "Remove \"${files}\" at number ${location}."
+
+		head -n $(( $location - 1 )) $queue > ${queue}.tmp # Stop right before the first deletion.
+		tail -n +$(( $location + $amount )) $queue >> ${queue}.tmp # Start $amount items after the first deletion.
 		mv ${queue}.tmp $queue
 	fi
 	if [[ $command == "quit" || $command == "exit" ]]
