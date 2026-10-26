@@ -51,6 +51,7 @@ do
 		echo "{list|ls}: List the files in the queue, with entry numbers."
 		echo "{add}: Add to the queue."
 		echo "{remove|rm}: Remove from the queue."
+		echo "{edit}: Switch which queue file is being edited."
 		echo "{exit|quit}: Quit the program and delete the queue file."
 	elif [[ $command == "list" || $command == "ls" ]]
 	then
@@ -109,6 +110,26 @@ do
 		head -n $(( $location - 1 )) $queue > ${queue}.tmp # Stop right before the first deletion.
 		tail -n +$(( $location + $amount )) $queue >> ${queue}.tmp # Start $amount items after the first deletion.
 		mv ${queue}.tmp $queue
+	elif [[ $command == "edit" ]]
+	then
+		next_argument "$arguments"
+		if [[ -n $argument ]]
+		then
+			file="$argument"
+		else
+			file=$(fzf --border="rounded" --border-label="Choose a file to edit." --border-label-pos=3:bottom)
+		fi
+		if [[ -n $file ]]
+		then
+			queue="$file"
+			if [[ ! -f $queue ]]
+			then
+				touch "$queue"
+			fi
+			echo "Writing queue to \"${queue}\"."
+		else
+			echo "No file was specified for editing." >> /dev/stderr
+		fi
 	elif [[ $command == "quit" || $command == "exit" ]]
 	then
 		exit_code=
