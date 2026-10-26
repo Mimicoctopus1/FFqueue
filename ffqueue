@@ -140,6 +140,35 @@ do
 		else
 			echo "No file was specified for editing." >> /dev/stderr
 		fi
+	elif [[ $command == "load" || $command == "cat" ]]
+	then
+		next_argument "$arguments"
+		if [[ -n $argument ]]
+		then
+			while [[ $? == 0 ]]
+			do
+				echo "Add \"$argument\"." 
+				cat "$argument" >> ${queue}.tmp
+				next_argument "$arguments"
+			done
+			mv ${queue}.tmp $queue
+		else
+			files=$(fzf --multi --border="rounded" --border-label="Choose a queue file to load (use <Tab> and <Shift+Tab> to select multiple)." --border-label-pos=3:bottom)
+			if [[ -n $files ]]
+			then
+				while [[ -n $files ]]
+				do
+					file=$(echo "$files" | head -n 1)
+					echo "Add \"$file\"." 
+					cat "$file" >> ${queue}.tmp
+					files=$(echo "$files" | tail -n +2)
+				done
+				mv ${queue}.tmp $queue
+			else
+				echo "Clear queue file."
+				echo "" > $queue
+			fi
+		fi
 	elif [[ $command == "quit" || $command == "exit" ]]
 	then
 		exit_code=
