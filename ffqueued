@@ -2,10 +2,10 @@
 function next_argument {
 	if [[ -n $parse_arguments ]]
 	then
-		possible_arguments="$(echo "$1" | xargs -n1 2> /dev/null)" # The redirection is to stop `xargs` from complaining when `echo` is cut off by `head`.
+		possible_arguments=$(echo "$1" | xargs -n1 2> /dev/null) # The redirection is to stop `xargs` from complaining when `echo` is cut off by `head`.
 		if [[ $to_read -le $(echo "$possible_arguments" | wc -l) ]]
 		then
-			argument="$(echo "$possible_arguments" | head -n $to_read | tail -n 1)"
+			argument=$(echo "$possible_arguments" | head -n $to_read | tail -n 1)
 		else
 			argument=
 		fi
@@ -37,7 +37,7 @@ done
 
 if [[ -z $queue ]]
 then
-	queue="$(pwd)/.queue"
+	queue=$(pwd)/.queue
 fi
 if [[ ! -f $queue ]]
 then
