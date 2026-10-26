@@ -46,18 +46,16 @@ do
 	to_read=1 # The zero-th one will be the function, "next_argument", itself, which will be the path to this script.
 	next_argument "$arguments"
 	command="$argument"
-	if [[ $command == "help" ]] # Forgive my wasteful "if" structures. /(^-^')7
+	if [[ $command == "help" ]]
 	then
 		echo "{list|ls}: List the files in the queue, with entry numbers."
 		echo "{add}: Add to the queue."
 		echo "{remove|rm}: Remove from the queue."
 		echo "{exit|quit}: Quit the program and delete the queue file."
-	fi
-	if [[ $command == "list" || $command == "ls" ]]
+	elif [[ $command == "list" || $command == "ls" ]]
 	then
 		nl --body-numbering="a" $queue
-	fi
-	if [[ $command == "add" ]]
+	elif [[ $command == "add" ]]
 	then
 		next_argument "$arguments"
 		if [[ -n $argument ]]
@@ -86,8 +84,7 @@ do
 		else
 			echo "No file was specified for adding." > /dev/stderr
 		fi
-	fi
-	if [[ $command == "remove" || $command == "rm" ]]
+	elif [[ $command == "remove" || $command == "rm" ]]
 	then
 		default_location=$(wc -l $queue | sed -e "s/ .*//")
 		echo -n "Start with [${default_location}]: " 
@@ -112,8 +109,7 @@ do
 		head -n $(( $location - 1 )) $queue > ${queue}.tmp # Stop right before the first deletion.
 		tail -n +$(( $location + $amount )) $queue >> ${queue}.tmp # Start $amount items after the first deletion.
 		mv ${queue}.tmp $queue
-	fi
-	if [[ $command == "quit" || $command == "exit" ]]
+	elif [[ $command == "quit" || $command == "exit" ]]
 	then
 		exit_code=
 		next_argument "$arguments"
